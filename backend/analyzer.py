@@ -25,6 +25,8 @@ def analyze_resume(resume_text, job_description):
     3. Identify missing keywords that should be added.
     4. Calculate an ATS match score (0-100).
     5. Provide a summary of changes made.
+    6. Generate a professional, highly-tailored Cover Letter.
+    7. Provide LinkedIn Profile optimization suggestions (About section and Experience highlights).
     
     YOU MUST RETURN A VALID JSON OBJECT.
     
@@ -32,20 +34,27 @@ def analyze_resume(resume_text, job_description):
     {{
         "ats_score": number,
         "optimized_resume": "string (full text)",
+        "cover_letter": "string (full text)",
+        "linkedin_suggestions": {{
+            "about": "string",
+            "experience_highlights": ["point1", "point2"]
+        }},
         "matched_keywords": ["skill1", "tool1"],
         "missing_keywords": ["skill2", "tool2"],
-        "changes_summary": ["change1", "change2"],
-        "highlighted_sections": [
-            {{"original": "...", "optimized": "..."}}
-        ]
+        "changes_summary": ["change1", "change2"]
     }}
     """
     
     response = client.chat.completions.create(
         model="mistral-large-latest",
-        messages=[{"role": "system", "content": "You are a professional resume optimizer. Respond only with JSON."},
+        messages=[{"role": "system", "content": "You are a professional resume optimizer. You MUST respond with a complete JSON object including ALL requested fields: ats_score, optimized_resume, cover_letter, linkedin_suggestions, matched_keywords, missing_keywords, and changes_summary. Do not leave any field empty."},
                   {"role": "user", "content": prompt}],
         response_format={ "type": "json_object" }
     )
     
-    return response.choices[0].message.content
+    result = response.choices[0].message.content
+    print("--- AI RESPONSE ---")
+    print(result)
+    print("-------------------")
+    
+    return result

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { jsPDF } from 'jspdf'
 
 function App() {
   const [file, setFile] = useState(null)
@@ -6,6 +7,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [activeTab, setActiveTab] = useState('resume')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -38,12 +40,25 @@ function App() {
   }
 
   const handleDownload = () => {
-    const blob = new Blob([result.optimized_resume], { type: 'text/plain' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'Optimized_Resume.txt'
-    a.click()
+    const doc = new jsPDF()
+    const text = activeTab === 'resume' ? result.optimized_resume : result.cover_letter
+    const title = activeTab === 'resume' ? 'Optimized Resume' : 'Cover Letter'
+    
+    // Simple PDF formatting
+    doc.setFontSize(16)
+    doc.text(title, 20, 20)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    
+    const splitText = doc.splitTextToSize(text, 170)
+    doc.text(splitText, 20, 30)
+    
+    doc.save(`${title.replace(' ', '_')}.pdf`)
+  }
+
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text)
+    alert('Copied to clipboard!')
   }
 
   return (
@@ -132,14 +147,84 @@ function App() {
         <div className="result-container animate-fade-in">
           <div className="result-grid">
             <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                <h2>Optimized Resume</h2>
-                <button className="btn" style={{ width: 'auto', padding: '0.75rem 1.5rem' }} onClick={handleDownload}>
-                  Download TXT
-                </button>
+              <div className="tabs">
+                <div 
+                  className={`tab ${activeTab === 'resume' ? 'active' : ''}`} 
+                  onClick={() => setActiveTab('resume')}
+                >
+                  Resume
+                </div>
+                <div 
+                  className={`tab ${activeTab === 'cover' ? 'active' : ''}`} 
+                  onClick={() => setActiveTab('cover')}
+                >
+                  Cover Letter
+                </div>
+                <div 
+                  className={`tab ${activeTab === 'linkedin' ? 'active' : ''}`} 
+                  onClick={() => setActiveTab('linkedin')}
+                >
+                  LinkedIn
+                </div>
               </div>
-              <div className="optimized-resume">
-                {result.optimized_resume}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+                <h2>{activeTab === 'resume' ? 'Optimized Resume' : activeTab === 'cover' ? 'Cover Letter' : 'LinkedIn Suggestions'}</h2>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {activeTab !== 'linkedin' && (
+                    <button className="btn" style={{ width: 'auto', padding: '0.75rem 1.5rem' }} onClick={handleDownload}>
+                      Download PDF
+                    </button>
+                  )}
+                  <button className="copy-btn" onClick={() => handleCopy(
+                    activeTab === 'resume' ? result.optimized_resume : 
+                    activeTab === 'cover' ? result.cover_letter : 
+                    JSON.stringify(result.linkedin_suggestions, null, 2)
+                  )}>
+                    Copy Text
+                  </button>
+                </div>
+              </div>
+
+              <div className="content-scroll">
+                {activeTab === 'resume' && (
+                  <div className="optimized-resume">
+                    {result.optimized_resume || "No optimized resume generated."}
+                  </div>
+                )}
+                {activeTab === 'cover' && (
+                  <div className="optimized-resume">
+                    {result.cover_letter || "The AI could not generate a cover letter for this job description. Try providing more details."}
+                  </div>
+                )}
+                {activeTab === 'linkedin' && (
+                  <div className="linkedin-results">
+                    {result.linkedin_suggestions ? (
+                      <>
+                        <div className="linkedin-section">
+                          <h4>About Section</h4>
+                          <div className="optimized-resume" style={{ fontSize: '0.9rem' }}>
+                            {result.linkedin_suggestions.about || "No suggestions for About section."}
+                          </div>
+                        </div>
+                        <div className="linkedin-section">
+                          <h4>Experience Highlights</h4>
+                          <ul className="experience-list">
+                            {result.linkedin_suggestions.experience_highlights?.length > 0 ? (
+                              result.linkedin_suggestions.experience_highlights.map((item, i) => (
+                                <li key={i}>{item}</li>
+                              ))
+                            ) : (
+                              <li style={{ color: 'var(--text-muted)' }}>No experience highlights generated.</li>
+                            )}
+                          </ul>
+                        </div>
+                      </>
+                    ) : (
+                      <p style={{ color: 'var(--text-muted)' }}>LinkedIn suggestions are not available for this analysis.</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

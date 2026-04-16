@@ -268,6 +268,109 @@ textarea:focus {
   color: var(--success);
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tab.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.content-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content-scroll::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 10px;
+}
+
+.copy-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: var(--glass-border);
+  color: var(--text-main);
+}
+
+.linkedin-section {
+  margin-bottom: 2rem;
+}
+
+.linkedin-section h4 {
+  color: var(--primary);
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.experience-list {
+  list-style: none;
+  padding: 0;
+}
+
+.experience-list li {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  border-left: 3px solid var(--primary);
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+@media (max-width: 768px) {
+  .result-grid { grid-template-columns: 1fr; }
+  .info-section { grid-template-columns: 1fr; }
+  .feature-grid { gap: 1.5rem; }
+  h1 { font-size: 2.5rem; }
+  .tabs { flex-direction: column; }
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -295,11 +398,4 @@ textarea:focus {
 @keyframes rotation {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-}
-
-@media (max-width: 768px) {
-  .result-grid { grid-template-columns: 1fr; }
-  .info-section { grid-template-columns: 1fr; }
-  .feature-grid { gap: 1.5rem; }
-  h1 { font-size: 2.5rem; }
 }
