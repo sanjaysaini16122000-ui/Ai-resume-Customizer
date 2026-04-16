@@ -54,8 +54,45 @@ function App() {
       </header>
 
       {!result ? (
-        <div className="card">
-          <form onSubmit={handleSubmit}>
+        <>
+          <section className="info-section">
+            <div className="step-card">
+              <div className="step-number">1</div>
+              <h3>Upload Resume</h3>
+              <p>Select your existing resume in PDF or DOCX format. We'll handle the parsing.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-number">2</div>
+              <h3>Paste Job Title</h3>
+              <p>Provide the job description you're targeting. Our AI analyzes the requirements.</p>
+            </div>
+            <div className="step-card">
+              <div className="step-number">3</div>
+              <h3>Get Optimized</h3>
+              <p>Receive a tailored resume, ATS match score, and keyword analysis instantly.</p>
+            </div>
+          </section>
+
+          <div className="features-highlight">
+            <h2>Why use our AI Optimizer?</h2>
+            <div className="feature-grid">
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                ATS-Friendly Rewriting
+              </div>
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Keyword Gap Analysis
+              </div>
+              <div className="feature-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Instant Match Scoring
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="resume-upload">Upload Resume (PDF/DOCX)</label>
               <input 
@@ -90,7 +127,8 @@ function App() {
             </button>
           </form>
         </div>
-      ) : (
+      </>
+    ) : (
         <div className="result-container animate-fade-in">
           <div className="result-grid">
             <div className="card">
