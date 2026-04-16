@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { jsPDF } from 'jspdf'
 
 function App() {
@@ -8,6 +8,16 @@ function App() {
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('resume')
+  const [jobUrl, setJobUrl] = useState('')
+  const [history, setHistory] = useState(() => {
+    const saved = localStorage.getItem('resume_history')
+    return saved ? JSON.parse(saved) : []
+  })
+
+  // Effects
+  useEffect(() => {
+    localStorage.setItem('resume_history', JSON.stringify(history))
+  }, [history])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -36,6 +46,52 @@ function App() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleScrape = async () => {
+    if (!jobUrl) return
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('http://localhost:8000/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: jobUrl })
+      })
+      if (!response.ok) throw new Error('Failed to fetch job details.')
+      const data = await response.json()
+      setJobDescription(data.description)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveToHistory = () => {
+    const entry = {
+      id: Date.now(),
+      date: new Date().toLocaleString(),
+      result,
+      jobDescription
+    }
+    setHistory([entry, ...history])
+    alert('Saved to history!')
+  }
+
+  const handleDeleteHistory = (id) => {
+    setHistory(history.filter(h => h.id !== id))
+  }
+
+  const handleUpdateResult = (field, value) => {
+    if (field === 'linkedin_suggestions_about') {
+      setResult({
+        ...result,
+        linkedin_suggestions: { ...result.linkedin_suggestions, about: value }
+      })
+    } else {
+      setResult({ ...result, [field]: value })
     }
   }
 
@@ -120,7 +176,21 @@ function App() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="job-desc">Paste Job Description</label>
+              <label htmlFor="job-url">Paste Job URL (Optional)</label>
+              <div className="scrape-controls">
+                <input 
+                  id="job-url"
+                  className="url-input"
+                  placeholder="LinkedIn, Indeed, or Job Board URL..."
+                  value={jobUrl}
+                  onChange={(e) => setJobUrl(e.target.value)}
+                />
+                <button type="button" className="fetch-btn" onClick={handleScrape} disabled={loading || !jobUrl}>
+                  Fetch Info
+                </button>
+              </div>
+
+              <label htmlFor="job-desc">Job Description</label>
               <textarea 
                 id="job-desc"
                 placeholder="Paste the full job description here..."
@@ -188,24 +258,31 @@ function App() {
 
               <div className="content-scroll">
                 {activeTab === 'resume' && (
-                  <div className="optimized-resume">
-                    {result.optimized_resume || "No optimized resume generated."}
-                  </div>
+                  <textarea 
+                    className="editable-area"
+                    value={result.optimized_resume || ""}
+                    onChange={(e) => handleUpdateResult('optimized_resume', e.target.value)}
+                  />
                 )}
                 {activeTab === 'cover' && (
-                  <div className="optimized-resume">
-                    {result.cover_letter || "The AI could not generate a cover letter for this job description. Try providing more details."}
-                  </div>
+                  <textarea 
+                    className="editable-area"
+                    value={result.cover_letter || ""}
+                    onChange={(e) => handleUpdateResult('cover_letter', e.target.value)}
+                  />
                 )}
                 {activeTab === 'linkedin' && (
                   <div className="linkedin-results">
                     {result.linkedin_suggestions ? (
                       <>
                         <div className="linkedin-section">
-                          <h4>About Section</h4>
-                          <div className="optimized-resume" style={{ fontSize: '0.9rem' }}>
-                            {result.linkedin_suggestions.about || "No suggestions for About section."}
-                          </div>
+                          <h4>About Section (Editable)</h4>
+                          <textarea 
+                            className="editable-area"
+                            style={{ minHeight: '200px' }}
+                            value={result.linkedin_suggestions.about || ""}
+                            onChange={(e) => handleUpdateResult('linkedin_suggestions_about', e.target.value)}
+                          />
                         </div>
                         <div className="linkedin-section">
                           <h4>Experience Highlights</h4>
@@ -226,6 +303,14 @@ function App() {
                   </div>
                 )}
               </div>
+
+              <button 
+                className="btn" 
+                style={{ marginTop: '2rem', background: 'var(--success)', boxShadow: 'none' }}
+                onClick={handleSaveToHistory}
+              >
+                💾 Save to History
+              </button>
             </div>
 
             <aside>
@@ -267,6 +352,29 @@ function App() {
             </aside>
           </div>
         </div>
+      )}
+
+      {history.length > 0 && (
+        <section className="history-section">
+          <h2>Your History</h2>
+          <div className="history-grid">
+            {history.map(item => (
+              <div key={item.id} className="history-card" onClick={() => {
+                setResult(item.result);
+                setJobDescription(item.jobDescription);
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h4>{item.jobDescription.split('\n')[0].substring(0, 30)}...</h4>
+                  <div className="mini-score">{item.result.ats_score}%</div>
+                </div>
+                <p className="date">{item.date}</p>
+                <div className="history-actions" onClick={e => e.stopPropagation()}>
+                  <button className="mini-btn danger" onClick={() => handleDeleteHistory(item.id)}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   )
