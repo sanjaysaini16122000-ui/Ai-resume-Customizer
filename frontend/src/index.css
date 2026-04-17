@@ -363,26 +363,97 @@ textarea:focus {
   color: var(--text-main);
 }
 
+/* Tone Selector */
+.tone-selector {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.4rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tone-option {
+  flex: 1;
+  padding: 0.6rem;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.tone-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.tone-option.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+/* Interview Prep */
+.interview-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.interview-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s;
+}
+
+.interview-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--primary);
+  transform: translateX(5px);
+}
+
+.interview-card h5 {
+  font-size: 1rem;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+
+.interview-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.interview-card p span {
+  color: var(--primary);
+  font-weight: 700;
+}
+
 @media (max-width: 768px) {
   .result-grid { grid-template-columns: 1fr; }
   .info-section { grid-template-columns: 1fr; }
   .feature-grid { gap: 1.5rem; }
   h1 { font-size: 2.5rem; }
   .tabs { flex-direction: column; }
+  .tone-selector { flex-direction: column; }
 }
 
-/* Animations */
+/* Restoring Animations & Loader */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* Loading Spinner */
 .loader {
   width: 24px;
   height: 24px;
@@ -394,7 +465,6 @@ textarea:focus {
   animation: rotation 1s linear infinite;
   margin-right: 12px;
 }
-
 @keyframes rotation {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { jsPDF } from 'jspdf'
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 function App() {
   const [file, setFile] = useState(null)
@@ -9,6 +10,7 @@ function App() {
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('resume')
   const [jobUrl, setJobUrl] = useState('')
+  const [tone, setTone] = useState('Executive')
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('resume_history')
     return saved ? JSON.parse(saved) : []
@@ -29,6 +31,7 @@ function App() {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('job_description', jobDescription)
+    formData.append('tone', tone)
 
     try {
       const response = await fetch('http://localhost:8000/optimize', {
@@ -165,6 +168,21 @@ function App() {
           <div className="card">
             <form onSubmit={handleSubmit}>
             <div className="form-group">
+              <label>Select Optimization Tone</label>
+              <div className="tone-selector">
+                {['Executive', 'Creative', 'Startup'].map(t => (
+                  <div 
+                    key={t} 
+                    className={`tone-option ${tone === t ? 'active' : ''}`}
+                    onClick={() => setTone(t)}
+                  >
+                    {t}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-group">
               <label htmlFor="resume-upload">Upload Resume (PDF/DOCX)</label>
               <input 
                 id="resume-upload"
@@ -231,17 +249,28 @@ function App() {
                   Cover Letter
                 </div>
                 <div 
-                  className={`tab ${activeTab === 'linkedin' ? 'active' : ''}`} 
-                  onClick={() => setActiveTab('linkedin')}
-                >
-                  LinkedIn
-                </div>
-              </div>
+                   className={`tab ${activeTab === 'linkedin' ? 'active' : ''}`} 
+                   onClick={() => setActiveTab('linkedin')}
+                 >
+                   LinkedIn
+                 </div>
+                 <div 
+                   className={`tab ${activeTab === 'interview' ? 'active' : ''}`} 
+                   onClick={() => setActiveTab('interview')}
+                 >
+                   Interview Prep
+                 </div>
+               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                <h2>{activeTab === 'resume' ? 'Optimized Resume' : activeTab === 'cover' ? 'Cover Letter' : 'LinkedIn Suggestions'}</h2>
+                <h2>{
+                  activeTab === 'resume' ? 'Optimized Resume' : 
+                  activeTab === 'cover' ? 'Cover Letter' : 
+                  activeTab === 'linkedin' ? 'LinkedIn Suggestions' : 
+                  'Interview Prep Bot'
+                }</h2>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  {activeTab !== 'linkedin' && (
+                  {['resume', 'cover'].includes(activeTab) && (
                     <button className="btn" style={{ width: 'auto', padding: '0.75rem 1.5rem' }} onClick={handleDownload}>
                       Download PDF
                     </button>
@@ -302,6 +331,16 @@ function App() {
                     )}
                   </div>
                 )}
+                {activeTab === 'interview' && (
+                  <div className="interview-results">
+                    {result.interview_questions?.map((q, i) => (
+                      <div key={i} className="interview-card">
+                        <h5>{q.question}</h5>
+                        <p><span>💡 Tip:</span> {q.tip}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button 
@@ -320,7 +359,32 @@ function App() {
               </div>
 
               <div className="card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
-                <h3>Matched Keywords</h3>
+                <h3>Skill Gap Analysis</h3>
+                <div style={{ width: '100%', height: 250, marginTop: '1rem' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={result.skill_gap_data}>
+                      <PolarGrid stroke="var(--glass-border)" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                      <Radar
+                        name="User"
+                        dataKey="user"
+                        stroke="var(--primary)"
+                        fill="var(--primary)"
+                        fillOpacity={0.6}
+                      />
+                      <Radar
+                        name="Required"
+                        dataKey="required"
+                        stroke="var(--success)"
+                        fill="var(--success)"
+                        fillOpacity={0.2}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <h3 style={{ marginTop: '2rem' }}>Matched Keywords</h3>
                 <div className="badge-container">
                   {result.matched_keywords.map(kw => (
                     <span key={kw} className="badge matched">{kw}</span>

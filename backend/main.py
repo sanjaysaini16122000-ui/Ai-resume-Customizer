@@ -59,7 +59,8 @@ async def root():
 @app.post("/optimize")
 async def optimize_resume_endpoint(
     file: UploadFile = File(...),
-    job_description: str = Form(...)
+    job_description: str = Form(...),
+    tone: str = Form("Executive")
 ):
     try:
         # Read file content
@@ -69,7 +70,7 @@ async def optimize_resume_endpoint(
         resume_text = extract_text(file_content, file.filename)
         
         # Analyze with AI
-        result_json = analyze_resume(resume_text, job_description)
+        result_json = analyze_resume(resume_text, job_description, tone)
         
         return json.loads(result_json)
         
