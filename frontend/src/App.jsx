@@ -393,8 +393,8 @@ function App() {
 
               <div className="card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
                 <h3>Skill Gap Analysis</h3>
-                <div style={{ width: '100%', height: '300px', minHeight: '300px', marginTop: '1rem' }}>
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <div style={{ width: '100%', height: '300px', display: 'block', position: 'relative' }}>
+                  <ResponsiveContainer width="99%" height={300}>
                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={result.skill_gap_data || []}>
                       <PolarGrid stroke="var(--glass-border)" />
                       <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
@@ -405,14 +405,53 @@ function App() {
                   </ResponsiveContainer>
                 </div>
 
-                <h3 style={{ marginTop: '2rem' }}>ATS Keyword Checklist</h3>
-                <div className="keyword-checklist">
-                  {result.missing_keywords.map(kw => (
-                    <div key={kw} className={`checklist-item ${isKeywordInResume(kw) ? 'found' : ''}`}>
-                      <div className="check-box">{isKeywordInResume(kw) ? '✓' : ''}</div>
-                      <span>{kw}</span>
-                    </div>
-                  ))}
+                <h3 style={{ marginTop: '2rem' }}>Keyword Match Dashboard</h3>
+                <div className="keyword-dashboard">
+                  {(() => {
+                    const allKeywords = [...(result.missing_keywords || []), ...(result.matched_keywords || [])];
+                    const foundKeywords = allKeywords.filter(kw => isKeywordInResume(kw));
+                    const missingKeywords = allKeywords.filter(kw => !isKeywordInResume(kw));
+                    const progress = allKeywords.length > 0 ? Math.round((foundKeywords.length / allKeywords.length) * 100) : 0;
+
+                    return (
+                      <>
+                        <div className="match-progress-container">
+                          <div className="progress-label">
+                            <span>Match Progress</span>
+                            <span>{foundKeywords.length}/{allKeywords.length}</span>
+                          </div>
+                          <div className="progress-bar-bg">
+                            <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+                          </div>
+                          <p className="progress-percentText">{progress}% Coverage</p>
+                        </div>
+
+                        <div className="keyword-categories">
+                          {missingKeywords.length > 0 && (
+                            <div className="keyword-category">
+                              <label>Missing - Add These!</label>
+                              <div className="pill-container">
+                                {missingKeywords.map(kw => (
+                                  <span key={kw} className="pill missing">{kw}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {foundKeywords.length > 0 && (
+                            <div className="keyword-category" style={{ marginTop: '1.5rem' }}>
+                              <label>Found in Resume</label>
+                              <div className="pill-container">
+                                {foundKeywords.map(kw => (
+                                  <span key={kw} className="pill found">✓ {kw}</span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
               
