@@ -6,7 +6,9 @@ def extract_text_from_pdf(file_bytes):
     with pdfplumber.open(io.BytesIO(file_bytes)) as pdf:
         text = ""
         for page in pdf.pages:
-            text += page.extract_text() + "\n"
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
     return text
 
 def extract_text_from_docx(file_bytes):

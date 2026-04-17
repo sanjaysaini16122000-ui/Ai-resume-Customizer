@@ -25,11 +25,20 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!file || !jobDescription) return
+    if (!file) {
+      setError("Please upload your resume file first.")
+      return
+    }
+    if (!jobDescription) {
+      setError("Please provide a job description.")
+      return
+    }
 
     setLoading(true)
     setError(null)
 
+    console.log("Submitting optimization request...", { filename: file?.name, tone });
+    
     const formData = new FormData()
     formData.append('file', file)
     formData.append('job_description', jobDescription)
@@ -42,7 +51,8 @@ function App() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to optimize resume. Please check your backend and API key.')
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to optimize resume.');
       }
 
       const data = await response.json()
@@ -218,14 +228,43 @@ function App() {
             </div>
 
             <div className="form-group">
-              <label htmlFor="resume-upload">Upload Resume (PDF/DOCX)</label>
-              <input 
-                id="resume-upload"
-                type="file" 
-                accept=".pdf,.docx" 
-                onChange={(e) => setFile(e.target.files[0])}
-                required
-              />
+              <label>Upload Resume (PDF/DOCX)</label>
+              <label htmlFor="resume-upload" className={`file-drop-zone ${file ? 'has-file' : ''}`}>
+                <input 
+                  id="resume-upload"
+                  type="file" 
+                  accept=".pdf,.docx" 
+                  onChange={(e) => {
+                    const f = e.target.files[0];
+                    if (f) {
+                      console.log("File selected:", f.name);
+                      setFile(f);
+                      setError(null); // Clear error when file is picked
+                    }
+                  }}
+                  style={{ display: 'none' }}
+                />
+                <div className="file-info">
+                  {file ? (
+                    <div className="selected-file-container">
+                      <span className="file-icon">📄</span>
+                      <span className="file-name">{file.name}</span>
+                    </div>
+                  ) : (
+                    <div className="upload-placeholder">
+                      <div className="upload-icon-wrapper">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="17 8 12 3 7 8" />
+                          <line x1="12" y1="3" x2="12" y2="15" />
+                        </svg>
+                      </div>
+                      <p className="main-text">Click to upload or drag & drop</p>
+                      <p className="sub-text">Supported formats: PDF, DOCX</p>
+                    </div>
+                  )}
+                </div>
+              </label>
             </div>
 
             <div className="form-group">
@@ -345,9 +384,9 @@ function App() {
 
               <div className="card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
                 <h3>Skill Gap Analysis</h3>
-                <div style={{ width: '100%', height: 250, marginTop: '1rem' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={result.skill_gap_data}>
+                <div style={{ width: '100%', height: '300px', minHeight: '300px', marginTop: '1rem' }}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={result.skill_gap_data || []}>
                       <PolarGrid stroke="var(--glass-border)" />
                       <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
