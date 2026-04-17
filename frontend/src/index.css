@@ -866,10 +866,40 @@ textarea:focus {
   font-family: 'Outfit', sans-serif;
   font-size: 0.95rem;
   line-height: 1.6;
-  min-height: 500px;
+  min-height: 600px; /* Increased from 500px to fill space */
   resize: vertical;
   transition: border-color 0.2s;
   margin-bottom: 1rem;
+}
+
+.changes-section-bottom {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.changes-section-bottom h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.changes-list-horizontal {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+}
+
+.changes-list-horizontal li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
 }
 
 .editable-area:focus {

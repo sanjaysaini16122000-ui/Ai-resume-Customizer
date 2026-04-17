@@ -373,7 +373,16 @@ function App() {
                 )}
               </div>
 
-              <button className="btn" style={{ marginTop: '2rem', background: 'var(--success)' }} onClick={handleSaveToHistory}>💾 Save to History</button>
+              <div className="changes-section-bottom">
+                <h3>Changes Made</h3>
+                <ul className="changes-list-horizontal">
+                  {result.changes_summary.map((change, i) => (
+                    <li key={i}>• {change}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <button className="btn" style={{ marginTop: '1.5rem', background: 'var(--success)' }} onClick={handleSaveToHistory}>💾 Save to History</button>
             </div>
 
             <aside>
@@ -405,11 +414,6 @@ function App() {
                     </div>
                   ))}
                 </div>
-                
-                <h3 style={{ marginTop: '2rem' }}>Changes Made</h3>
-                <ul className="experience-list" style={{ paddingLeft: '1.2rem', fontSize: '0.85rem' }}>
-                  {result.changes_summary.map((change, i) => <li key={i} style={{ marginBottom: '0.5rem', background: 'transparent', padding: '0', border: 'none' }}>• {change}</li>)}
-                </ul>
               </div>
               
               <button className="btn" style={{ marginTop: '1.5rem', background: 'transparent', border: '1px solid var(--glass-border)' }} onClick={() => setResult(null)}>Start Over</button>
