@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { jsPDF } from 'jspdf'
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 
 function App() {
   const [file, setFile] = useState(null)
@@ -11,6 +12,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('resume')
   const [jobUrl, setJobUrl] = useState('')
   const [tone, setTone] = useState('Executive')
+  const [selectedTemplate, setSelectedTemplate] = useState('Modern')
   const [history, setHistory] = useState(() => {
     const saved = localStorage.getItem('resume_history')
     return saved ? JSON.parse(saved) : []
@@ -73,6 +75,7 @@ function App() {
   }
 
   const handleSaveToHistory = () => {
+    if (!result) return
     const entry = {
       id: Date.now(),
       date: new Date().toLocaleString(),
@@ -98,21 +101,57 @@ function App() {
     }
   }
 
+  const isKeywordInResume = (keyword) => {
+    if (!result?.optimized_resume) return false
+    return result.optimized_resume.toLowerCase().includes(keyword.toLowerCase())
+  }
+
   const handleDownload = () => {
     const doc = new jsPDF()
     const text = activeTab === 'resume' ? result.optimized_resume : result.cover_letter
     const title = activeTab === 'resume' ? 'Optimized Resume' : 'Cover Letter'
     
-    // Simple PDF formatting
-    doc.setFontSize(16)
-    doc.text(title, 20, 20)
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
+    // Template Styles
+    if (selectedTemplate === 'Modern') {
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(99, 102, 241) // Primary
+      doc.setFontSize(22)
+      doc.text(title.toUpperCase(), 20, 25)
+      
+      doc.setDrawColor(99, 102, 241)
+      doc.setLineWidth(1)
+      doc.line(20, 28, 60, 28)
+      
+      doc.setTextColor(40, 40, 40)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(10)
+    } else if (selectedTemplate === 'Tech') {
+      doc.setFont('courier', 'bold')
+      doc.setFillColor(30, 41, 59)
+      doc.rect(0, 0, 210, 40, 'F')
+      
+      doc.setTextColor(255, 255, 255)
+      doc.setFontSize(24)
+      doc.text(title, 20, 25)
+      
+      doc.setTextColor(50, 50, 50)
+      doc.setFontSize(9)
+      doc.setFont('courier', 'normal')
+    } else { // Academic
+      doc.setFont('times', 'italic')
+      doc.setFontSize(20)
+      doc.text(title, 105, 25, { align: 'center' })
+      
+      doc.setFont('times', 'normal')
+      doc.setFontSize(11)
+      doc.setLineWidth(0.5)
+      doc.line(40, 28, 170, 28)
+    }
     
     const splitText = doc.splitTextToSize(text, 170)
-    doc.text(splitText, 20, 30)
+    doc.text(splitText, 20, 45)
     
-    doc.save(`${title.replace(' ', '_')}.pdf`)
+    doc.save(`${title.replace(' ', '_')}_${selectedTemplate}.pdf`)
   }
 
   const handleCopy = (text) => {
@@ -120,53 +159,49 @@ function App() {
     alert('Copied to clipboard!')
   }
 
-  return (
-    <div className="container">
-      <header>
-        <h1>AI Resume Optimizer</h1>
-        <p className="subtitle">Tailor your resume for any job in seconds using AI.</p>
-      </header>
-
-      {!result ? (
-        <>
-          <section className="info-section">
-            <div className="step-card">
-              <div className="step-number">1</div>
-              <h3>Upload Resume</h3>
-              <p>Select your existing resume in PDF or DOCX format. We'll handle the parsing.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">2</div>
-              <h3>Paste Job Title</h3>
-              <p>Provide the job description you're targeting. Our AI analyzes the requirements.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">3</div>
-              <h3>Get Optimized</h3>
-              <p>Receive a tailored resume, ATS match score, and keyword analysis instantly.</p>
-            </div>
-          </section>
-
-          <div className="features-highlight">
-            <h2>Why use our AI Optimizer?</h2>
-            <div className="feature-grid">
-              <div className="feature-item">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                ATS-Friendly Rewriting
-              </div>
-              <div className="feature-item">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Keyword Gap Analysis
-              </div>
-              <div className="feature-item">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Instant Match Scoring
-              </div>
+  const Navbar = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    
+    return (
+      <nav className="navbar">
+        <div className="nav-content">
+          <div className="nav-left">
+            <div className="logo-group" onClick={() => { navigate('/'); setResult(null); }}>
+              <h1>AI Resume Optimizer</h1>
+              <p className="nav-subtitle">Tailor your resume in seconds using AI</p>
             </div>
           </div>
 
-          <div className="card">
-            <form onSubmit={handleSubmit}>
+          <div className="nav-center">
+            <div className="nav-links">
+              <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
+              <Link to="/features" className={location.pathname === '/features' ? 'active' : ''}>Features</Link>
+              <Link to="/history" className={location.pathname === '/history' ? 'active' : ''}>History</Link>
+            </div>
+          </div>
+
+          <div className="nav-right">
+            <div className="nav-badges">
+              <span className="premium-badge">PRO</span>
+              {result && <div className="nav-score">{result.ats_score}% Match</div>}
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  };
+
+  const HomePage = () => (
+    <>
+      <header className="hero-header">
+        <div className="hero-badge">AI Powered</div>
+        <h2>Bypass ATS and land more interviews.</h2>
+      </header>
+
+      {!result ? (
+        <div className="card">
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Select Optimization Tone</label>
               <div className="tone-selector">
@@ -230,75 +265,44 @@ function App() {
             </button>
           </form>
         </div>
-      </>
-    ) : (
+      ) : (
         <div className="result-container animate-fade-in">
           <div className="result-grid">
             <div className="card">
               <div className="tabs">
-                <div 
-                  className={`tab ${activeTab === 'resume' ? 'active' : ''}`} 
-                  onClick={() => setActiveTab('resume')}
-                >
-                  Resume
-                </div>
-                <div 
-                  className={`tab ${activeTab === 'cover' ? 'active' : ''}`} 
-                  onClick={() => setActiveTab('cover')}
-                >
-                  Cover Letter
-                </div>
-                <div 
-                   className={`tab ${activeTab === 'linkedin' ? 'active' : ''}`} 
-                   onClick={() => setActiveTab('linkedin')}
-                 >
-                   LinkedIn
-                 </div>
-                 <div 
-                   className={`tab ${activeTab === 'interview' ? 'active' : ''}`} 
-                   onClick={() => setActiveTab('interview')}
-                 >
-                   Interview Prep
-                 </div>
-               </div>
+                <div className={`tab ${activeTab === 'resume' ? 'active' : ''}`} onClick={() => setActiveTab('resume')}>Resume</div>
+                <div className={`tab ${activeTab === 'cover' ? 'active' : ''}`} onClick={() => setActiveTab('cover')}>Cover Letter</div>
+                <div className={`tab ${activeTab === 'linkedin' ? 'active' : ''}`} onClick={() => setActiveTab('linkedin')}>LinkedIn</div>
+                <div className={`tab ${activeTab === 'interview' ? 'active' : ''}`} onClick={() => setActiveTab('interview')}>Interview Prep</div>
+              </div>
+
+              <div className="template-picker">
+                <span>Template:</span>
+                {['Modern', 'Tech', 'Academic'].map(t => (
+                  <button key={t} className={`template-btn ${selectedTemplate === t ? 'active' : ''}`} onClick={() => setSelectedTemplate(t)}>{t}</button>
+                ))}
+              </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
-                <h2>{
-                  activeTab === 'resume' ? 'Optimized Resume' : 
-                  activeTab === 'cover' ? 'Cover Letter' : 
-                  activeTab === 'linkedin' ? 'LinkedIn Suggestions' : 
-                  'Interview Prep Bot'
-                }</h2>
+                <h2>{activeTab === 'resume' ? 'Optimized Resume' : activeTab === 'cover' ? 'Cover Letter' : activeTab === 'linkedin' ? 'LinkedIn Suggestions' : 'Interview Prep Bot'}</h2>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {['resume', 'cover'].includes(activeTab) && (
-                    <button className="btn" style={{ width: 'auto', padding: '0.75rem 1.5rem' }} onClick={handleDownload}>
-                      Download PDF
-                    </button>
+                    <button className="btn" style={{ width: 'auto', padding: '0.75rem 1.5rem' }} onClick={handleDownload}>Download PDF</button>
                   )}
                   <button className="copy-btn" onClick={() => handleCopy(
                     activeTab === 'resume' ? result.optimized_resume : 
                     activeTab === 'cover' ? result.cover_letter : 
                     JSON.stringify(result.linkedin_suggestions, null, 2)
-                  )}>
-                    Copy Text
-                  </button>
+                  )}>Copy Text</button>
                 </div>
               </div>
 
               <div className="content-scroll">
                 {activeTab === 'resume' && (
-                  <textarea 
-                    className="editable-area"
-                    value={result.optimized_resume || ""}
-                    onChange={(e) => handleUpdateResult('optimized_resume', e.target.value)}
-                  />
+                  <textarea className="editable-area" value={result.optimized_resume || ""} onChange={(e) => handleUpdateResult('optimized_resume', e.target.value)} />
                 )}
                 {activeTab === 'cover' && (
-                  <textarea 
-                    className="editable-area"
-                    value={result.cover_letter || ""}
-                    onChange={(e) => handleUpdateResult('cover_letter', e.target.value)}
-                  />
+                  <textarea className="editable-area" value={result.cover_letter || ""} onChange={(e) => handleUpdateResult('cover_letter', e.target.value)} />
                 )}
                 {activeTab === 'linkedin' && (
                   <div className="linkedin-results">
@@ -306,29 +310,16 @@ function App() {
                       <>
                         <div className="linkedin-section">
                           <h4>About Section (Editable)</h4>
-                          <textarea 
-                            className="editable-area"
-                            style={{ minHeight: '200px' }}
-                            value={result.linkedin_suggestions.about || ""}
-                            onChange={(e) => handleUpdateResult('linkedin_suggestions_about', e.target.value)}
-                          />
+                          <textarea className="editable-area" style={{ minHeight: '200px' }} value={result.linkedin_suggestions.about || ""} onChange={(e) => handleUpdateResult('linkedin_suggestions_about', e.target.value)} />
                         </div>
                         <div className="linkedin-section">
                           <h4>Experience Highlights</h4>
                           <ul className="experience-list">
-                            {result.linkedin_suggestions.experience_highlights?.length > 0 ? (
-                              result.linkedin_suggestions.experience_highlights.map((item, i) => (
-                                <li key={i}>{item}</li>
-                              ))
-                            ) : (
-                              <li style={{ color: 'var(--text-muted)' }}>No experience highlights generated.</li>
-                            )}
+                            {result.linkedin_suggestions.experience_highlights?.map((item, i) => <li key={i}>{item}</li>)}
                           </ul>
                         </div>
                       </>
-                    ) : (
-                      <p style={{ color: 'var(--text-muted)' }}>LinkedIn suggestions are not available for this analysis.</p>
-                    )}
+                    ) : <p style={{ color: 'var(--text-muted)' }}>LinkedIn suggestions are not available.</p>}
                   </div>
                 )}
                 {activeTab === 'interview' && (
@@ -343,13 +334,7 @@ function App() {
                 )}
               </div>
 
-              <button 
-                className="btn" 
-                style={{ marginTop: '2rem', background: 'var(--success)', boxShadow: 'none' }}
-                onClick={handleSaveToHistory}
-              >
-                💾 Save to History
-              </button>
+              <button className="btn" style={{ marginTop: '2rem', background: 'var(--success)' }} onClick={handleSaveToHistory}>💾 Save to History</button>
             </div>
 
             <aside>
@@ -366,66 +351,89 @@ function App() {
                       <PolarGrid stroke="var(--glass-border)" />
                       <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                      <Radar
-                        name="User"
-                        dataKey="user"
-                        stroke="var(--primary)"
-                        fill="var(--primary)"
-                        fillOpacity={0.6}
-                      />
-                      <Radar
-                        name="Required"
-                        dataKey="required"
-                        stroke="var(--success)"
-                        fill="var(--success)"
-                        fillOpacity={0.2}
-                      />
+                      <Radar name="User" dataKey="user" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.6} />
+                      <Radar name="Required" dataKey="required" stroke="var(--success)" fill="var(--success)" fillOpacity={0.2} />
                     </RadarChart>
                   </ResponsiveContainer>
                 </div>
 
-                <h3 style={{ marginTop: '2rem' }}>Matched Keywords</h3>
-                <div className="badge-container">
-                  {result.matched_keywords.map(kw => (
-                    <span key={kw} className="badge matched">{kw}</span>
-                  ))}
-                </div>
-
-                <h3 style={{ marginTop: '1.5rem' }}>Missing Keywords</h3>
-                <div className="badge-container">
+                <h3 style={{ marginTop: '2rem' }}>ATS Keyword Checklist</h3>
+                <div className="keyword-checklist">
                   {result.missing_keywords.map(kw => (
-                    <span key={kw} className="badge missing">{kw}</span>
+                    <div key={kw} className={`checklist-item ${isKeywordInResume(kw) ? 'found' : ''}`}>
+                      <div className="check-box">{isKeywordInResume(kw) ? '✓' : ''}</div>
+                      <span>{kw}</span>
+                    </div>
                   ))}
                 </div>
                 
-                <h3 style={{ marginTop: '1.5rem' }}>Changes Made</h3>
-                <ul style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem', paddingLeft: '1.2rem' }}>
-                  {result.changes_summary.map((change, i) => (
-                    <li key={i}>{change}</li>
-                  ))}
+                <h3 style={{ marginTop: '2rem' }}>Changes Made</h3>
+                <ul className="experience-list" style={{ paddingLeft: '1.2rem', fontSize: '0.85rem' }}>
+                  {result.changes_summary.map((change, i) => <li key={i} style={{ marginBottom: '0.5rem', background: 'transparent', padding: '0', border: 'none' }}>• {change}</li>)}
                 </ul>
               </div>
               
-              <button 
-                className="btn" 
-                style={{ marginTop: '1.5rem', background: 'transparent', border: '1px solid var(--glass-border)' }}
-                onClick={() => setResult(null)}
-              >
-                Start Over
-              </button>
+              <button className="btn" style={{ marginTop: '1.5rem', background: 'transparent', border: '1px solid var(--glass-border)' }} onClick={() => setResult(null)}>Start Over</button>
             </aside>
           </div>
         </div>
       )}
+    </>
+  );
 
-      {history.length > 0 && (
-        <section className="history-section">
-          <h2>Your History</h2>
+  const FeaturesPage = () => (
+    <div className="page-content">
+      <header className="hero-header">
+        <div className="hero-badge">Key Features</div>
+        <h2>Powerful AI tools for your career.</h2>
+      </header>
+      
+      <section className="info-section">
+        <div className="step-card">
+          <div className="step-number">1</div>
+          <h3>AI Optimization</h3>
+          <p>Advanced keyword matching and tone adjustment for any industry.</p>
+        </div>
+        <div className="step-card">
+          <div className="step-number">2</div>
+          <h3>Real-time Tracking</h3>
+          <p>Watch your ATS score improve live as you edit your resume.</p>
+        </div>
+        <div className="step-card">
+          <div className="step-number">3</div>
+          <h3>Premium Exports</h3>
+          <p>Beautiful, print-ready PDF templates for Modern, Tech, and Academic styles.</p>
+        </div>
+      </section>
+
+      <div className="features-highlight" style={{ marginTop: '4rem' }}>
+        <h2>Complete AI Feature Set</h2>
+        <div className="feature-grid">
+          <div className="feature-item">✓ Interview Prep Bot</div>
+          <div className="feature-item">✓ LinkedIn Optimizer</div>
+          <div className="feature-item">✓ Cover Letter Generator</div>
+          <div className="feature-item">✓ Skill Gap Radar Charts</div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const HistoryPage = () => {
+    const navigate = useNavigate();
+    return (
+      <div className="history-section" style={{ minHeight: '60vh' }}>
+        <header className="hero-header">
+          <div className="hero-badge">Persistence</div>
+          <h2>Your Saved Resumes</h2>
+        </header>
+        
+        {history.length > 0 ? (
           <div className="history-grid">
             {history.map(item => (
               <div key={item.id} className="history-card" onClick={() => {
                 setResult(item.result);
                 setJobDescription(item.jobDescription);
+                navigate('/');
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <h4>{item.jobDescription.split('\n')[0].substring(0, 30)}...</h4>
@@ -438,9 +446,29 @@ function App() {
               </div>
             ))}
           </div>
-        </section>
-      )}
-    </div>
+        ) : (
+          <div className="empty-history">
+            <p>No saved resumes found. Start by customizing one on the Home page!</p>
+            <button className="btn" style={{ width: 'auto', marginTop: '1rem' }} onClick={() => navigate('/')}>Start Optimizing</button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Router>
+      <div className="container">
+        <Navbar />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   )
 }
 
