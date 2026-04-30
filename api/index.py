@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from parser import extract_text
 from analyzer import analyze_resume
 
-app = FastAPI()
+app = FastAPI(root_path="/api")
 
 # Enable CORS for frontend
 app.add_middleware(
