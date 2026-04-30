@@ -44,8 +44,10 @@ function App() {
     formData.append('job_description', jobDescription)
     formData.append('tone', tone)
 
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    
     try {
-      const response = await fetch('http://localhost:8000/optimize', {
+      const response = await fetch(`${API_URL}/optimize`, {
         method: 'POST',
         body: formData,
       })
@@ -68,8 +70,9 @@ function App() {
     if (!jobUrl) return
     setLoading(true)
     setError(null)
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     try {
-      const response = await fetch('http://localhost:8000/scrape', {
+      const response = await fetch(`${API_URL}/scrape`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: jobUrl })
@@ -187,6 +190,7 @@ function App() {
             <div className="nav-links">
               <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
               <Link to="/features" className={location.pathname === '/features' ? 'active' : ''}>Features</Link>
+              <Link to="/templates" className={location.pathname === '/templates' ? 'active' : ''}>Templates</Link>
               <Link to="/history" className={location.pathname === '/history' ? 'active' : ''}>History</Link>
             </div>
           </div>
@@ -202,9 +206,12 @@ function App() {
     );
   };
 
-  const HomePage = () => (
-    <>
-      <header className="hero-header">
+  const HomePage = () => {
+    const navigate = useNavigate();
+    
+    return (
+      <>
+        <header className="hero-header">
         <div className="hero-badge">AI Powered</div>
         <h2>Bypass ATS and land more interviews.</h2>
       </header>
@@ -320,6 +327,9 @@ function App() {
                 {['Modern', 'Tech', 'Academic'].map(t => (
                   <button key={t} className={`template-btn ${selectedTemplate === t ? 'active' : ''}`} onClick={() => setSelectedTemplate(t)}>{t}</button>
                 ))}
+                <button className="btn" style={{ padding: '0.4rem 0.8rem', width: 'auto', marginLeft: 'auto', fontSize: '0.8rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--glass-border)' }} onClick={() => navigate('/templates')}>
+                  🖼️ View Gallery
+                </button>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
@@ -338,10 +348,10 @@ function App() {
 
               <div className="content-scroll">
                 {activeTab === 'resume' && (
-                  <textarea className="editable-area" value={result.optimized_resume || ""} onChange={(e) => handleUpdateResult('optimized_resume', e.target.value)} />
+                  <textarea className={`editable-area template-view-${selectedTemplate.toLowerCase()}`} value={result.optimized_resume || ""} onChange={(e) => handleUpdateResult('optimized_resume', e.target.value)} />
                 )}
                 {activeTab === 'cover' && (
-                  <textarea className="editable-area" value={result.cover_letter || ""} onChange={(e) => handleUpdateResult('cover_letter', e.target.value)} />
+                  <textarea className={`editable-area template-view-${selectedTemplate.toLowerCase()}`} value={result.cover_letter || ""} onChange={(e) => handleUpdateResult('cover_letter', e.target.value)} />
                 )}
                 {activeTab === 'linkedin' && (
                   <div className="linkedin-results">
@@ -461,7 +471,8 @@ function App() {
         </div>
       )}
     </>
-  );
+    );
+  };
 
   const FeaturesPage = () => (
     <div className="page-content">
@@ -499,6 +510,80 @@ function App() {
       </div>
     </div>
   );
+
+  const TemplatesPage = () => {
+    const navigate = useNavigate();
+    return (
+      <div className="page-content template-page" style={{ paddingBottom: '3rem' }}>
+        <header className="hero-header" style={{ margin: '2rem 0' }}>
+          <div className="hero-badge">Gallery</div>
+          <h2>Select Your Template</h2>
+          <p style={{ color: 'var(--text-muted)', marginTop: '1rem' }}>Choose the perfect layout for your PDF export and stand out to recruiters.</p>
+        </header>
+
+        <div className="template-gallery">
+          {/* Modern Template */}
+          <div className={`template-preview-card ${selectedTemplate === 'Modern' ? 'active' : ''}`} onClick={() => { setSelectedTemplate('Modern'); navigate('/'); }}>
+            <div className="preview-visual modern-preview">
+              <div className="pv-header">JOHN DOE</div>
+              <div className="pv-divider"></div>
+              <div className="pv-body">
+                <div className="pv-h">PROFESSIONAL SUMMARY</div>
+                <div className="pv-p">Results-driven Web Developer with hands-on experience in building responsive, user-centric web applications.</div>
+                <div className="pv-h">EXPERIENCE</div>
+                <div className="pv-p" style={{fontWeight: 'bold'}}>Software Engineer</div>
+                <div className="pv-p">Developed scalable frontend interfaces using React.js and modern tools.</div>
+              </div>
+            </div>
+            <div className="preview-info">
+              <h3>Modern Professional</h3>
+              <p>Clean formatting with a subtle primary color accent. Best for corporate and design roles.</p>
+              {selectedTemplate === 'Modern' && <span className="active-badge">✓ Selected</span>}
+            </div>
+          </div>
+
+          {/* Tech Template */}
+          <div className={`template-preview-card ${selectedTemplate === 'Tech' ? 'active' : ''}`} onClick={() => { setSelectedTemplate('Tech'); navigate('/'); }}>
+            <div className="preview-visual tech-preview">
+              <div className="pv-dark-header">JOHN DOE</div>
+              <div className="pv-body">
+                <div className="pv-h"># PROFESSIONAL SUMMARY</div>
+                <div className="pv-p">{'>'} Results-driven Web Developer with hands-on experience in building responsive apps.</div>
+                <div className="pv-h" style={{marginTop:'10px'}}># EXPERIENCE</div>
+                <div className="pv-p" style={{fontWeight: 'bold'}}>{'>'} Software Engineer</div>
+                <div className="pv-p">{'>'} Developed scalable frontend interfaces using React.js.</div>
+              </div>
+            </div>
+            <div className="preview-info">
+              <h3>Tech Minimalist</h3>
+              <p>High-contrast, terminal-like style using Monospace typography. Best for engineers.</p>
+              {selectedTemplate === 'Tech' && <span className="active-badge">✓ Selected</span>}
+            </div>
+          </div>
+
+          {/* Academic Template */}
+          <div className={`template-preview-card ${selectedTemplate === 'Academic' ? 'active' : ''}`} onClick={() => { setSelectedTemplate('Academic'); navigate('/'); }}>
+            <div className="preview-visual academic-preview">
+              <div className="pv-header-center">John Doe</div>
+              <div className="pv-divider-center"></div>
+              <div className="pv-body">
+                <div className="pv-h">Professional Summary</div>
+                <div className="pv-p">Results-driven Web Developer with hands-on experience in building responsive, user-centric web applications.</div>
+                <div className="pv-h">Experience</div>
+                <div className="pv-p" style={{fontStyle: 'italic', color: '#111'}}>Software Engineer</div>
+                <div className="pv-p">Developed scalable frontend interfaces using React.js and modern tools.</div>
+              </div>
+            </div>
+            <div className="preview-info">
+              <h3>Academic Classic</h3>
+              <p>Timeless serif typography with centered headers. Best for academia and research roles.</p>
+              {selectedTemplate === 'Academic' && <span className="active-badge">✓ Selected</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const HistoryPage = () => {
     const navigate = useNavigate();
@@ -546,6 +631,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/features" element={<FeaturesPage />} />
+            <Route path="/templates" element={<TemplatesPage />} />
             <Route path="/history" element={<HistoryPage />} />
           </Routes>
         </main>
