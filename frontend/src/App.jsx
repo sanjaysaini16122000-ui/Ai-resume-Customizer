@@ -6,23 +6,30 @@ import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation 
 // Navbar Component
 const Navbar = ({ result, navigate, setResult }) => {
   const location = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   return (
     <nav className="navbar">
       <div className="nav-content">
         <div className="nav-left">
-          <div className="logo-group" onClick={() => { navigate('/'); setResult(null); }}>
+          <div className="logo-group" onClick={() => { navigate('/'); setResult(null); setIsMenuOpen(false); }}>
             <h1>AI Resume Optimizer</h1>
             <p className="nav-subtitle">Tailor your resume in seconds using AI</p>
           </div>
         </div>
 
-        <div className="nav-center">
+        <button className="mobile-menu-btn" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {isMenuOpen ? <path d="M18 6L6 18M6 6l12 12" /> : <path d="M3 12h18M3 6h18M3 18h18" />}
+          </svg>
+        </button>
+
+        <div className={`nav-center ${isMenuOpen ? 'mobile-open' : ''}`}>
           <div className="nav-links">
-            <Link to="/" className={location.pathname === '/' ? 'active' : ''}>Home</Link>
-            <Link to="/features" className={location.pathname === '/features' ? 'active' : ''}>Features</Link>
-            <Link to="/templates" className={location.pathname === '/templates' ? 'active' : ''}>Templates</Link>
-            <Link to="/history" className={location.pathname === '/history' ? 'active' : ''}>History</Link>
+            <Link to="/" className={location.pathname === '/' ? 'active' : ''} onClick={() => setIsMenuOpen(false)}>Home</Link>
+            <Link to="/features" className={location.pathname === '/features' ? 'active' : ''} onClick={() => setIsMenuOpen(false)}>Features</Link>
+            <Link to="/templates" className={location.pathname === '/templates' ? 'active' : ''} onClick={() => setIsMenuOpen(false)}>Templates</Link>
+            <Link to="/history" className={location.pathname === '/history' ? 'active' : ''} onClick={() => setIsMenuOpen(false)}>History</Link>
           </div>
         </div>
 
@@ -168,7 +175,7 @@ const HomePage = ({
               </button>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem'}}>
+            <div className="result-header">
               <h2>{activeTab === 'resume' ? 'Optimized Resume' : activeTab === 'cover' ? 'Cover Letter' : activeTab === 'linkedin' ? 'LinkedIn Suggestions' : 'Interview Prep Bot'}</h2>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {['resume', 'cover'].includes(activeTab) && (
