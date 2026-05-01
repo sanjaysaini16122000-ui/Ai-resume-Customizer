@@ -4,8 +4,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+api_key = os.getenv("MISTRAL_API_KEY")
+if not api_key:
+    raise ValueError("MISTRAL_API_KEY environment variable is not set. Please add it to your Vercel project settings.")
+
 client = OpenAI(
-    api_key=os.getenv("MISTRAL_API_KEY"),
+    api_key=api_key,
     base_url="https://api.mistral.ai/v1"
 )
 

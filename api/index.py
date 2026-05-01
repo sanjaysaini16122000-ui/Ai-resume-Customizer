@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import json
 import requests
 from bs4 import BeautifulSoup
-from parser import extract_text
+from resume_parser import extract_text
 from analyzer import analyze_resume
 
 app = FastAPI(root_path="/api")

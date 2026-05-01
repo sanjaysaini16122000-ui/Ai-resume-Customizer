@@ -6,3 +6,5 @@ python-docx
 python-dotenv
 pydantic
 python-multipart
+beautifulsoup4
+requests
