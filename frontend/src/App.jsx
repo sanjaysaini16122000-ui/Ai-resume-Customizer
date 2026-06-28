@@ -517,11 +517,21 @@ function App() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to optimize resume.');
+        const contentType = response.headers.get('content-type') || ''
+        const bodyText = contentType.includes('application/json')
+          ? await response.json()
+          : await response.text()
+        const errorText = typeof bodyText === 'object' ? bodyText.detail || JSON.stringify(bodyText) : bodyText
+        throw new Error(errorText || 'Failed to optimize resume.')
       }
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        const text = await response.clone().text()
+        throw new Error(text || 'Invalid JSON response from optimize endpoint.')
+      }
       setResult(data)
     } catch (err) {
       setError(err.message)
@@ -541,7 +551,14 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: jobUrl })
       })
-      if (!response.ok) throw new Error('Failed to fetch job details.')
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type') || ''
+        const bodyText = contentType.includes('application/json')
+          ? await response.json()
+          : await response.text()
+        const errorText = typeof bodyText === 'object' ? bodyText.detail || JSON.stringify(bodyText) : bodyText
+        throw new Error(errorText || 'Failed to fetch job details.')
+      }
       const data = await response.json()
       setJobDescription(data.description)
     } catch (err) {

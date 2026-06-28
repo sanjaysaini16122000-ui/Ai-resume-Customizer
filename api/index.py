@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 from resume_parser import extract_text
 from analyzer import analyze_resume
 
-app = FastAPI(root_path="/api")
+app = FastAPI()
 
 # Enable CORS for frontend
 app.add_middleware(
@@ -72,8 +72,18 @@ async def optimize_resume_endpoint(
         # Analyze with AI
         result_json = analyze_resume(resume_text, job_description, tone)
         
-        return json.loads(result_json)
+        if isinstance(result_json, str):
+            try:
+                return json.loads(result_json)
+            except json.JSONDecodeError:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"AI response was not valid JSON: {result_json[:200]}"
+                )
+        return result_json
         
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
